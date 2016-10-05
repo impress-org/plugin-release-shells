@@ -90,7 +90,7 @@ echo ""
 read -p "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
 
 # REMOVE UNWANTED FILES & FOLDERS
-echo "Removing unwanted files"
+echo "Removing unwanted files..."
 rm -Rf .git
 rm -Rf tests
 rm -Rf bower
@@ -126,6 +126,8 @@ rm -f phpunit.xml.dist
 rm -f LICENSE.txt
 rm -f README.md
 rm -f readme.md
+wait
+echo "All cleaned! Proceeding..."
 
 # COPY GIT DIR TO TRUNK
 cp -R "$ROOT_PATH$TEMP_GITHUB_REPO" trunk/
