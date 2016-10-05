@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -45,31 +44,21 @@ read -p " - Added a changelog for "${VERSION}"?"
 read -p " - Set version in the readme.txt and main file to "${VERSION}"?"
 read -p " - Set stable tag in the readme.txt file to "${VERSION}"?"
 read -p " - Updated the POT file?"
-read -p " - Committed all changes up to GITHUB?"
+read -p " - Committed all changes up to GitHub?"
 echo ""
-read -p "PRESS [ENTER] TO BEGIN RELEASING "${VERSION}
+read -p "Press [ENTER] to begin releasing "${VERSION}
 clear
 
-# VARS
+# SET VARS
 ROOT_PATH=$(pwd)"/"
 TEMP_GITHUB_REPO=${PLUGIN_SLUG}"-git"
-TEMP_SVN_REPO=${PLUGIN_SLUG}"-svn"
-SVN_REPO="http://plugins.svn.wordpress.org/"${PLUGIN_SLUG}"/"
 GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
 
-# DELETE OLD TEMP DIRS
-rm -Rf $ROOT_PATH$TEMP_GITHUB_REPO
-rm -Rf $TEMP_SVN_REPO
-
-# CHECKOUT SVN DIR IF NOT EXISTS
-if [[ ! -d $TEMP_SVN_REPO ]];
-then
-	echo "Checking out WordPress.org plugin repository"
-	svn checkout $SVN_REPO $TEMP_SVN_REPO || { echo "Unable to checkout repo."; exit 1; }
-fi
+# DELETE OLD TEMP DIRS BEFORE BEGINNING
+rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 
 # CLONE GIT DIR
-echo "Cloning GIT repository from GITHUB"
+echo "Cloning GIT repository from GitHub"
 git clone --progress $GIT_REPO $TEMP_GITHUB_REPO || { echo "Unable to clone repo."; exit 1; }
 
 # MOVE INTO GIT DIR
@@ -78,7 +67,7 @@ cd "$ROOT_PATH$TEMP_GITHUB_REPO"
 # LIST BRANCHES
 clear
 git fetch origin
-echo "WHICH BRANCH DO YOU WISH TO DEPLOY?"
+echo "Which branch do you wish to deploy?"
 git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
 read -p "origin/" BRANCH
@@ -87,7 +76,7 @@ read -p "origin/" BRANCH
 echo "Switching to branch"
 git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
-read -p "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
+read -p "Press [ENTER] to deploy \""${BRANCH}"\" branch"
 
 # REMOVE UNWANTED FILES & FOLDERS
 echo "Removing unwanted files..."
@@ -123,14 +112,13 @@ rm -f .jshintrc
 rm -f composer.json
 rm -f phpunit.xml
 rm -f phpunit.xml.dist
+rm -f LICENSE
 rm -f LICENSE.txt
 rm -f README.md
 rm -f readme.md
 wait
 echo "All cleaned! Proceeding..."
 
-# COPY GIT DIR TO TRUNK
-cp -R "$ROOT_PATH$TEMP_GITHUB_REPO" trunk/
 
 # PROMPT USER
 echo ""
@@ -141,11 +129,29 @@ echo ""
 echo "Creating GITHUB release"
 API_JSON=$(printf '{ "tag_name": "%s","target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
 RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases?access_token=${GITHUB_ACCESS_TOKEN})
+wait
+echo RESULT
+echo "GitHub Release Created...";
+sleep 3
+clear
+
+# Create the Zip File
+echo "Creating zip package..."
+cd "$ROOT_PATH"
+mv "$TEMP_GITHUB_REPO" "$PLUGIN_SLUG" #Rename cleaned repo
+wait
+zip -r "$PLUGIN_SLUG".zip "$PLUGIN_SLUG" #Zip it
+wait
+mv "$PLUGIN_SLUG" "$TEMP_GITHUB_REPO" #Rename back to temp dir
+wait
+echo "Zip package created"
+
+# FTP to GiveWP.com
+
 
 # REMOVE THE TEMP DIRS
 echo "Cleaning up the directory:"
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
-rm -Rf "$ROOT_PATH$TEMP_SVN_REPO"
 
 # DONE, BYE
 echo "Releaser done :D"
