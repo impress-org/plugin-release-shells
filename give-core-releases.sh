@@ -126,7 +126,8 @@ rm -f phpunit.xml.dist
 rm -f LICENSE.txt
 rm -f README.md
 rm -f readme.md
-
+rm -f CONTRIBUTING.md
+rm -f contributing.md
 
 # MOVE INTO SVN DIR
 cd "$ROOT_PATH$TEMP_SVN_REPO"
