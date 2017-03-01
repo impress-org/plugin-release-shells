@@ -83,14 +83,12 @@ echo "Removing unwanted files..."
 rm -Rf .git
 rm -Rf tests
 rm -Rf bower
-rm -Rf vendor/composer
 rm -Rf tmp
 rm -Rf node_modules
 rm -Rf apigen
 rm -Rf .idea
 rm -Rf .github
 rm -f .bowerrc
-rm -f vendor/autoload.php
 rm -f .scrutinizer.yml
 rm -f .travis.yml
 rm -f bower.json
