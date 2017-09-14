@@ -78,6 +78,16 @@ git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
 read -p "Press [ENTER] to deploy \""${BRANCH}"\" branch"
 
+## Checking for git submodules
+if [ -f .gitmodules ];
+then
+echo "Submodule found. Updating"
+git submodule init
+git submodule update
+else
+echo "No submodule exists"
+fi
+
 # REMOVE UNWANTED FILES & FOLDERS
 echo "Removing unwanted files..."
 rm -Rf .git
@@ -125,10 +135,10 @@ echo ""
 
 # CREATE THE GITHUB RELEASE
 echo "Creating GITHUB release"
-API_JSON=$(printf '{ "tag_name": "%s","target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
+API_JSON=$(printf '{ "tag_name": "%s", "target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
 RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases?access_token=${GITHUB_ACCESS_TOKEN})
 wait
-echo RESULT
+echo "$RESULT"
 echo "GitHub Release Created...";
 sleep 3
 clear
