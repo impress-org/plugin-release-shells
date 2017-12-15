@@ -27,16 +27,29 @@ set -e
 clear
 
 echo "--------------------------------------------"
-echo "    Welcome to the Give Add-on Release      "
+echo "    Welcome to the Give Add-on Releaser     "
 echo "--------------------------------------------"
 
 read -p "GitHub Add-on repo name: " GITHUB_REPO_NAME
-read -p "Plugin slug: " PLUGIN_SLUG
-read -p "Tag and release version: " VERSION
+
+# Lowercase a slug guess from repo to speed things up.
+SLUG_GUESS="$(tr [A-Z] [a-z] <<< "$GITHUB_REPO_NAME")"
+
+read -p "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
+PLUGIN_SLUG=${PLUGIN_SLUG:-$SLUG_GUESS}
+read -p "Tag and release version for $PLUGIN_SLUG: " VERSION
+
+# Verify there's a version number
+# now check if $x is "y"
+if [ "$VERSION" = "" ]; then
+    # do something here!
+    read -p "You forgot the plugin version: " VERSION
+fi
 
 clear
 
 # ASK INFO
+
 echo ""
 echo "Before continuing, confirm that you have done the following :)"
 echo ""
@@ -48,6 +61,7 @@ read -p " - Committed all changes up to GitHub?"
 echo ""
 read -p "Press [ENTER] to begin releasing "${VERSION}
 clear
+
 
 # SET VARS
 ROOT_PATH=$(pwd)"/"
@@ -70,7 +84,7 @@ git fetch origin
 echo "Which branch do you wish to deploy?"
 git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
-read -p "origin/" BRANCH
+read -p "origin/master" BRANCH
 
 # Switch Branch
 echo "Switching to branch"
@@ -105,6 +119,7 @@ rm -f bower.json
 rm -f composer.json
 rm -f composer.lock
 rm -f package.json
+rm -f package-lcok.json
 rm -f .CONTRIBUTING.md
 rm -f .gitattributes
 rm -f .gitignore
@@ -134,14 +149,14 @@ read -p "Press [ENTER] to commit release "${VERSION}" to GitHub"
 echo ""
 
 # CREATE THE GITHUB RELEASE
-echo "Creating GITHUB release"
-API_JSON=$(printf '{ "tag_name": "%s", "target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
-RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases?access_token=${GITHUB_ACCESS_TOKEN})
-wait
-echo "$RESULT"
-echo "GitHub Release Created...";
-sleep 3
-clear
+#echo "Creating GITHUB release"
+#API_JSON=$(printf '{ "tag_name": "%s", "target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
+#RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases?access_token=${GITHUB_ACCESS_TOKEN})
+#wait
+#echo "$RESULT"
+#echo "GitHub Release Created...";
+#sleep 3
+#clear
 
 # Create the Zip File
 echo "Creating zip package..."
@@ -153,12 +168,31 @@ wait
 mv "$PLUGIN_SLUG" "$TEMP_GITHUB_REPO" #Rename back to temp dir
 wait
 echo "Zip package created"
+echo ""
 
-# FTP to GiveWP.com
+# REMOVE EVERYTHING BUT THE README FILE IN THE FOLDER
+echo "Creatings readme.txt file for website:"
+mv "$ROOT_PATH$TEMP_GITHUB_REPO"/readme.txt /tmp/
+rm -rf "$ROOT_PATH$TEMP_GITHUB_REPO"
+mkdir "$ROOT_PATH$PLUGIN_SLUG"
+mv /tmp/readme.txt "$ROOT_PATH$PLUGIN_SLUG"
+
+# Secure copy zip file to GiveWP.com
+#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins LIVE
+echo ""
+echo "--------------------------------------------------"
+read -p "Are you ready to move the files to givewp.com?"
+echo "--------------------------------------------------"
+# Sensitive info remove here: ping Devin for more
+#scp "$PLUGIN_SLUG".zip
+#scp -pr "$ROOT_PATH$PLUGIN_SLUG"
 
 
 # REMOVE THE TEMP DIRS
-echo "Cleaning up the directory:"
+echo "Files transferred..."
+echo ""
+
+echo "Cleaning up the directory..."
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 
 # DONE, BYE
