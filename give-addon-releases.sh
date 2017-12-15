@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+# ARGS:
+# - R = enter the name of the github repo as it appears.
+# - v =  enter the version number that you would like to be released.
+#
+# NOTES:
+#
+# You need the following installed globally:
+#
+# 1. github-release-notes : https://github.com/github-tools/github-release-notes
+# 2. github-changelog-generator : https://github.com/skywinder/github-changelog-generator
+#
+#
+# Disclaimer:
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -23,6 +37,16 @@ GITHUB_REPO_OWNER="WordImpress"
 
 # ----- STOP EDITING HERE -----
 
+# ASSEMBLE ARGS PASSED TO SCRIPT.
+while getopts r:v: option
+do
+ case "${option}"
+ in
+ r) GITHUB_REPO_NAME=${OPTARG};;
+ v) VERSION=${OPTARG};;
+ esac
+done
+
 set -e
 clear
 
@@ -30,14 +54,21 @@ echo "--------------------------------------------"
 echo "    Welcome to the Give Add-on Releaser     "
 echo "--------------------------------------------"
 
-read -p "GitHub Add-on repo name: " GITHUB_REPO_NAME
+# Is GITHUB_REPO_NAME var set?
+if [ "$GITHUB_REPO_NAME" = "" ]; then
+    read -p "GitHub Add-on repo name: " GITHUB_REPO_NAME
+fi
+
+# Is VERSION var set?
+if [ "$VERSION" = "" ]; then
+    read -p "Tag and release version for $GITHUB_REPO_NAME: " VERSION
+fi
 
 # Lowercase a slug guess from repo to speed things up.
 SLUG_GUESS="$(tr [A-Z] [a-z] <<< "$GITHUB_REPO_NAME")"
 
 read -p "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
 PLUGIN_SLUG=${PLUGIN_SLUG:-$SLUG_GUESS}
-read -p "Tag and release version for $PLUGIN_SLUG: " VERSION
 
 # Verify there's a version number
 # now check if $x is "y"
@@ -46,10 +77,14 @@ if [ "$VERSION" = "" ]; then
     read -p "You forgot the plugin version: " VERSION
 fi
 
+
+echo "----------------------------------------------------"
+echo "    GETTING READY TO RELEASE " GITHUB_REPO_NAME
+echo "----------------------------------------------------"
+
 clear
 
 # ASK INFO
-
 echo ""
 echo "Before continuing, confirm that you have done the following :)"
 echo ""
@@ -102,9 +137,14 @@ else
 echo "No submodule exists"
 fi
 
+# UPDATE CHANGELOG.MD FILE
+echo "Updating CHANGELOG.md release"
+github_changelog_generator ${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME} --token ${GITHUB_ACCESS_TOKEN}
+wait
+clear
+
 # REMOVE UNWANTED FILES & FOLDERS
 echo "Removing unwanted files..."
-rm -Rf .git
 rm -Rf tests
 rm -Rf bower
 rm -Rf tmp
@@ -138,6 +178,7 @@ rm -f phpunit.xml.dist
 rm -f LICENSE
 rm -f LICENSE.txt
 rm -f README.md
+rm -f CHANGELOG.md
 rm -f readme.md
 wait
 echo "All cleaned! Proceeding..."
@@ -149,14 +190,18 @@ read -p "Press [ENTER] to commit release "${VERSION}" to GitHub"
 echo ""
 
 # CREATE THE GITHUB RELEASE
-#echo "Creating GITHUB release"
-#API_JSON=$(printf '{ "tag_name": "%s", "target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
-#RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases?access_token=${GITHUB_ACCESS_TOKEN})
-#wait
-#echo "$RESULT"
-#echo "GitHub Release Created...";
-#sleep 3
-#clear
+echo "Creating GitHub tag and release"
+git tag -a ${VERSION} -m "Tagging version: $VERSION"
+git push origin --tags # push tags to remote
+
+# USE GREN TO PRETTY UP THE RELEASE NOTES
+gren release --token ${GITHUB_ACCESS_TOKEN}
+echo "GitHub Release Created...";
+
+# REMOVE .GIT DIR
+rm -Rf .git
+sleep 3
+clear
 
 # Create the Zip File
 echo "Creating zip package..."
@@ -176,22 +221,19 @@ mv "$ROOT_PATH$TEMP_GITHUB_REPO"/readme.txt /tmp/
 rm -rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 mkdir "$ROOT_PATH$PLUGIN_SLUG"
 mv /tmp/readme.txt "$ROOT_PATH$PLUGIN_SLUG"
-
-# Secure copy zip file to GiveWP.com
-#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins LIVE
 echo ""
+
+# SECURE COPY FILES OVER TO GIVEWP.COM
+#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins LIVE
 echo "--------------------------------------------------"
 read -p "Are you ready to move the files to givewp.com?"
 echo "--------------------------------------------------"
-# Sensitive info remove here: ping Devin for more
-#scp "$PLUGIN_SLUG".zip
-#scp -pr "$ROOT_PATH$PLUGIN_SLUG"
-
-
-# REMOVE THE TEMP DIRS
+scp "$PLUGIN_SLUG".zip # ENTER CONNECT INFO
+scp "$ROOT_PATH$PLUGIN_SLUG" # ENTER CONNECT INFO
 echo "Files transferred..."
 echo ""
 
+# REMOVE THE TEMP DIRS
 echo "Cleaning up the directory..."
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 
