@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-# ARGS:
+# GITHUB ADD-ON RELEASER
+#
+# READ BEFORE USING:
+#
+# YOU CAN PASS THE FOLLOWING ARGS:
 # - R = enter the name of the github repo as it appears.
 # - v =  enter the version number that you would like to be released.
 #
@@ -10,7 +14,6 @@
 #
 # 1. github-release-notes : https://github.com/github-tools/github-release-notes
 # 2. github-changelog-generator : https://github.com/skywinder/github-changelog-generator
-#
 #
 # Disclaimer:
 #
@@ -33,7 +36,7 @@
 GITHUB_ACCESS_TOKEN=""
 
 # GITHUB user who owns the repo
-GITHUB_REPO_OWNER="WordImpress"
+GITHUB_REPO_OWNER=""
 
 # ----- STOP EDITING HERE -----
 
@@ -76,7 +79,6 @@ if [ "$VERSION" = "" ]; then
     # do something here!
     read -p "You forgot the plugin version: " VERSION
 fi
-
 
 echo "----------------------------------------------------"
 echo "    GETTING READY TO RELEASE " GITHUB_REPO_NAME
@@ -121,13 +123,21 @@ git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
 read -p "origin/master" BRANCH
 
-# Switch Branch
-echo "Switching to branch"
+# If no branch default var to master
+if [ "$BRANCH" = "" ]; then
+    BRANCH="master"
+fi
+
+# Switch Branch if not master
+if [ "$BRANCH" != "master" ]; then
+  echo "Switching to branch"
+fi
+
 git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
 read -p "Press [ENTER] to deploy \""${BRANCH}"\" branch"
 
-## Checking for git submodules
+# Checking for git submodules
 if [ -f .gitmodules ];
 then
 echo "Submodule found. Updating"
@@ -141,6 +151,10 @@ fi
 echo "Updating CHANGELOG.md release"
 github_changelog_generator ${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME} --token ${GITHUB_ACCESS_TOKEN}
 wait
+echo "Committing CHANGELOG.md to release"
+git add CHANGELOG.md || { echo "Unable to add changelog."; exit 1; }
+git commit -m "Committing updated changelog." || { echo "Unable to commit changelog."; }
+git push origin
 clear
 
 # REMOVE UNWANTED FILES & FOLDERS
@@ -183,7 +197,6 @@ rm -f readme.md
 wait
 echo "All cleaned! Proceeding..."
 
-
 # PROMPT USER
 echo ""
 read -p "Press [ENTER] to commit release "${VERSION}" to GitHub"
@@ -198,7 +211,18 @@ git push origin --tags # push tags to remote
 gren release --token ${GITHUB_ACCESS_TOKEN}
 echo "GitHub Release Created...";
 
-# REMOVE .GIT DIR
+# CLOSE GITHUB MILESTONE
+echo "Closing the GitHub milestone";
+TODAY=$(date -u +"%Y-%m-%dT%H:%MZ")
+API_JSON=$(printf '{ "title": "%s", "state": "closed",  "description": "%s milestone", "due_on": "%s"}' $VERSION $VERSION $TODAY)
+RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/milestones/${VERSION}?access_token=${GITHUB_ACCESS_TOKEN})
+wait
+echo "$API_JSON"
+echo "$RESULT"
+sleep 3
+clear
+
+# REMOVE .GIT DIR AS WE'RE DONE WITH GIT
 rm -Rf .git
 sleep 3
 clear
@@ -228,8 +252,8 @@ echo ""
 echo "--------------------------------------------------"
 read -p "Are you ready to move the files to givewp.com?"
 echo "--------------------------------------------------"
-scp "$PLUGIN_SLUG".zip # ENTER CONNECT INFO
-scp "$ROOT_PATH$PLUGIN_SLUG" # ENTER CONNECT INFO
+scp "$PLUGIN_SLUG".zip
+scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt 
 echo "Files transferred..."
 echo ""
 
@@ -239,3 +263,4 @@ rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 
 # DONE, BYE
 echo "Releaser done :D"
+echo "What's left? Update the version number in EDD!"
