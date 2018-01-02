@@ -5,7 +5,7 @@
 # READ BEFORE USING:
 #
 # YOU CAN PASS THE FOLLOWING ARGS:
-# - R = enter the name of the github repo as it appears.
+# - r = enter the name of the github repo as it appears.
 # - v =  enter the version number that you would like to be released.
 #
 # NOTES:
@@ -39,6 +39,7 @@ GITHUB_ACCESS_TOKEN=""
 GITHUB_REPO_OWNER=""
 
 # ----- STOP EDITING HERE -----
+
 
 # ASSEMBLE ARGS PASSED TO SCRIPT.
 while getopts r:v: option
@@ -173,7 +174,7 @@ rm -f bower.json
 rm -f composer.json
 rm -f composer.lock
 rm -f package.json
-rm -f package-lcok.json
+rm -f package-lock.json
 rm -f .CONTRIBUTING.md
 rm -f .gitattributes
 rm -f .gitignore
@@ -186,6 +187,8 @@ rm -f gulpfile.js
 rm -f grunt-instructions.md
 rm -f .jscrsrc
 rm -f .jshintrc
+rm -f .eslintrc
+rm -f .eslintignore
 rm -f composer.json
 rm -f phpunit.xml
 rm -f phpunit.xml.dist
@@ -206,10 +209,22 @@ echo ""
 echo "Creating GitHub tag and release"
 git tag -a ${VERSION} -m "Tagging version: $VERSION"
 git push origin --tags # push tags to remote
+echo "";
 
 # USE GREN TO PRETTY UP THE RELEASE NOTES
 gren release --token ${GITHUB_ACCESS_TOKEN}
 echo "GitHub Release Created...";
+
+# UPDATE Give-Add-on-Releases README.md
+echo "";
+echo "Updating Give-Addon-Releases...";
+git clone --progress "git@github.com:WordImpress/Give-Addon-Releases.git" "give-addon-releases" || { echo "Unable to clone repo."; exit 1; }
+cd "give-addon-releases"
+sed -i -e 's/|:----------|:-------------:|------:|/|:----------|:-------------:|------:|\
+| Devin |  "$VERSION" | $1210 |/g' README.md
+git commit -am "Committing updated add-on releases." || { echo "Unable to commit."; }
+git push origin
+echo "";
 
 # CLOSE GITHUB MILESTONE
 echo "Closing the GitHub milestone";
@@ -221,6 +236,21 @@ echo "$API_JSON"
 echo "$RESULT"
 sleep 3
 clear
+
+# UPDATE Give-Add-on-Releases README.md
+NEWLINE="
+"
+HTMLVER="\`${VERSION}\`"
+echo "";
+echo "Updating Give-Addon-Releases...";
+#git clone --progress "git@github.com:WordImpress/Give-Addon-Releases.git" "give-addon-releases" || { echo "Unable to clone repo."; exit 1; }
+cd "give-addon-releases"
+sed -i -e "s/|:----------|:-------------:|------:|/|:----------|:-------------:|------:|\\${NEWLINE}| Devin | ${GITHUB_REPO_NAME} | ${HTMLVER} |/g" README.md
+git commit -am "Committing updated add-on releases." || { echo "Unable to commit."; }
+git push origin
+cd ..
+rm -Rf "give-addon-releases"
+echo ""
 
 # REMOVE .GIT DIR AS WE'RE DONE WITH GIT
 rm -Rf .git
@@ -248,12 +278,13 @@ mv /tmp/readme.txt "$ROOT_PATH$PLUGIN_SLUG"
 echo ""
 
 # SECURE COPY FILES OVER TO GIVEWP.COM
-#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins LIVE
+#scp "$PLUGIN_SLUG".zip
+#scp "$PLUGIN_SLUG".zip
 echo "--------------------------------------------------"
 read -p "Are you ready to move the files to givewp.com?"
 echo "--------------------------------------------------"
 scp "$PLUGIN_SLUG".zip
-scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt 
+scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt
 echo "Files transferred..."
 echo ""
 
