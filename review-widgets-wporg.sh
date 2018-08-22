@@ -16,7 +16,7 @@
 # ----- START EDITING HERE -----
 
 # THE GITHUB ACCESS TOKEN, GENERATE ONE AT: https://github.com/settings/tokens
-GITHUB_ACCESS_TOKEN="db9c51c3f6be77333bc144f004dc5f148db04398"
+GITHUB_ACCESS_TOKEN=""
 
 # GITHUB user who owns the repo
 GITHUB_REPO_OWNER="WordImpress"
@@ -178,6 +178,8 @@ svn update || { echo "Unable to update SVN."; exit 1; }
 # DELETE TRUNK
 echo "Replacing trunk"
 rm -Rf trunk/
+
+sleep 3
 
 # COPY GIT DIR TO TRUNK
 cp -R "$ROOT_PATH$TEMP_GITHUB_REPO" trunk/
