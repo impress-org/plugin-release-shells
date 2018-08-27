@@ -94,14 +94,12 @@ echo "Removing unwanted files"
 rm -Rf .git
 rm -Rf tests
 rm -Rf bower
-rm -Rf vendor/composer
 rm -Rf tmp
 rm -Rf node_modules
 rm -Rf apigen
 rm -Rf .idea
 rm -Rf .github
 rm -f .bowerrc
-rm -f vendor/autoload.php
 rm -f .scrutinizer.yml
 rm -f .travis.yml
 rm -f bower.json
@@ -128,6 +126,8 @@ rm -f README.md
 rm -f readme.md
 rm -f CONTRIBUTING.md
 rm -f contributing.md
+rm -f docker.yml
+rm -f sample-data/wordpress.sql
 
 # MOVE INTO SVN DIR
 cd "$ROOT_PATH$TEMP_SVN_REPO"
