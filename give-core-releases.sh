@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@ GITHUB_ACCESS_TOKEN=""
 PLUGIN_SLUG="give"
 
 # GITHUB user who owns the repo
-GITHUB_REPO_OWNER="WordImpress"
+GITHUB_REPO_OWNER="impress-org"
 
 # GITHUB Repository name
-GITHUB_REPO_NAME="Give"
+GITHUB_REPO_NAME="give"
 
 # ----- STOP EDITING HERE -----
 
@@ -58,8 +58,8 @@ SVN_REPO="http://plugins.svn.wordpress.org/"${PLUGIN_SLUG}"/"
 GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
 
 # DELETE OLD TEMP DIRS
-rm -Rf $ROOT_PATH$TEMP_GITHUB_REPO
-rm -Rf $TEMP_SVN_REPO
+rm -Rf  $TEMP_GITHUB_REPO
+# rm -Rf $TEMP_SVN_REPO
 
 # CHECKOUT SVN DIR IF NOT EXISTS
 if [[ ! -d $TEMP_SVN_REPO ]];
@@ -83,51 +83,92 @@ git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
 read -p "origin/" BRANCH
 
-# Switch Branch
+# SWITCH TO BRANCH
 echo "Switching to branch"
 git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
 read -p "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
+
+# RUN COMPOSER
+composer install
+npm install
+npm run build
 
 # REMOVE UNWANTED FILES & FOLDERS
 echo "Removing unwanted files"
 rm -Rf .git
 rm -Rf tests
 rm -Rf bower
+rm -Rf vendor/squizlabs
+rm -Rf vendor/wimg
+rm -Rf vendor/wp-coding-standards
+rm -Rf vendor/tecnickcom/tcpdf/examples
+rm -Rf vendor/tecnickcom/tcpdf/tools
+rm -Rf vendor/composer/installers
+rm -Rf vendor/bin
 rm -Rf tmp
 rm -Rf node_modules
 rm -Rf apigen
+rm -Rf assets/src
 rm -Rf .idea
 rm -Rf .github
+
+# Hidden Files
 rm -f .bowerrc
 rm -f .scrutinizer.yml
 rm -f .travis.yml
-rm -f bower.json
-rm -f composer.json
-rm -f composer.lock
-rm -f package.json
 rm -f .CONTRIBUTING.md
 rm -f .gitattributes
 rm -f .gitignore
 rm -f .gitmodules
 rm -f .editorconfig
 rm -f .travis.yml
-rm -f Gruntfile.js
-rm -f GulpFile.js
-rm -f gulpfile.js
-rm -f grunt-instructions.md
+rm -f .babelrc
 rm -f .jscrsrc
 rm -f .jshintrc
+rm -f .eslintignore
+rm -f .eslintrc
+
+# Other Files
+rm -f sample-data/wordpress.sql
+rm -f bower.json
+rm -f composer.json
+rm -f composer.lock
+rm -f package.json
+rm -f package-lock.json
 rm -f composer.json
 rm -f phpunit.xml
 rm -f phpunit.xml.dist
-rm -f LICENSE.txt
+rm -f CHANGELOG.md
 rm -f README.md
 rm -f readme.md
+rm -f phpcs.ruleset.xml
 rm -f CONTRIBUTING.md
+rm -f CODE_OF_CONDUCT.md
 rm -f contributing.md
-rm -f docker.yml
-rm -f sample-data/wordpress.sql
+rm -f postcss.config.js
+rm -f webpack.config.js
+
+# Delete un-used fonts
+rm -rf includes/libraries/tcpdf/fonts/ae_fonts_2.0
+rm -rf includes/libraries/tcpdf/fonts/dejavu-fonts-ttf-2.33
+rm -rf includes/libraries/tcpdf/fonts/dejavu-fonts-ttf-2.34
+rm -rf includes/libraries/tcpdf/fonts/freefont-20100919
+rm -rf includes/libraries/tcpdf/fonts/freefont-20120503
+rm -rf includes/libraries/tcpdf/fonts/freemon*
+rm -rf includes/libraries/tcpdf/fonts/cid*
+rm -rf includes/libraries/tcpdf/fonts/courier*
+rm -rf includes/libraries/tcpdf/fonts/aefurat*
+rm -rf includes/libraries/tcpdf/fonts/dejavusansb*
+rm -rf includes/libraries/tcpdf/fonts/dejavusansi*
+rm -rf includes/libraries/tcpdf/fonts/dejavusansmono*
+rm -rf includes/libraries/tcpdf/fonts/dejavusanscondensed*
+rm -rf includes/libraries/tcpdf/fonts/dejavusansextralight*
+rm -rf includes/libraries/tcpdf/fonts/dejavuserif*
+rm -rf includes/libraries/tcpdf/fonts/freesan*
+rm -rf includes/libraries/tcpdf/fonts/pdf*
+rm -rf includes/libraries/tcpdf/fonts/times*
+rm -rf includes/libraries/tcpdf/fonts/uni2cid*
 
 # MOVE INTO SVN DIR
 cd "$ROOT_PATH$TEMP_SVN_REPO"
@@ -143,6 +184,12 @@ rm -Rf trunk/
 # COPY GIT DIR TO TRUNK
 cp -R "$ROOT_PATH$TEMP_GITHUB_REPO" trunk/
 
+# ADD FILES WITH "@" SYMBOL
+# SEE: https://stackoverflow.com/questions/757435/how-to-escape-characters-in-subversion-managed-file-names
+for file in $(find ./ -type f -name "*@*.png"); do
+   svn add $file@ --force;
+done
+
 # DO THE ADD ALL NOT KNOWN FILES UNIX COMMAND
 svn add --force * --auto-props --parents --depth infinity -q
 
@@ -151,7 +198,7 @@ MISSING_PATHS=$( svn status | sed -e '/^!/!d' -e 's/^!//' )
 
 # iterate over filepaths
 for MISSING_PATH in $MISSING_PATHS; do
-    svn rm --force "$MISSING_PATH"
+    svn rm --force "$MISSING_PATH@"
 done
 
 # COPY TRUNK TO TAGS/$VERSION
@@ -165,13 +212,8 @@ svn status
 
 # PROMPT USER
 echo ""
-read -p "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG AND GITHUB"
+read -p "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG"
 echo ""
-
-# CREATE THE GITHUB RELEASE
-echo "Creating GITHUB release"
-API_JSON=$(printf '{ "tag_name": "%s","target_commitish": "%s","name": "%s", "body": "Release of version %s", "draft": false, "prerelease": false }' $VERSION $BRANCH $VERSION $VERSION)
-RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases?access_token=${GITHUB_ACCESS_TOKEN})
 
 # DEPLOY
 echo ""
