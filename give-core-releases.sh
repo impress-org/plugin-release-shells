@@ -61,7 +61,7 @@ GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
 rm -Rf  $TEMP_GITHUB_REPO
 # rm -Rf $TEMP_SVN_REPO
 
-# CHECKOUT SVN DIR IF NOT EXISTS
+# CHECKOUT SVN DIR IF IT DOESN'T EXIST
 if [[ ! -d $TEMP_SVN_REPO ]];
 then
 	echo "Checking out WordPress.org plugin repository"
@@ -131,6 +131,7 @@ rm -f .eslintrc
 
 # Other Files
 rm -f sample-data/wordpress.sql
+rm -f sample-data/sample-data.numbers
 rm -f bower.json
 rm -f composer.json
 rm -f composer.lock
@@ -148,6 +149,7 @@ rm -f CODE_OF_CONDUCT.md
 rm -f contributing.md
 rm -f postcss.config.js
 rm -f webpack.config.js
+rm -f docker-compose.yml
 
 # Delete un-used fonts
 rm -rf includes/libraries/tcpdf/fonts/ae_fonts_2.0
