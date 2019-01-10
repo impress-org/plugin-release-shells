@@ -40,7 +40,6 @@ GITHUB_REPO_OWNER=""
 
 # ----- STOP EDITING HERE -----
 
-
 # ASSEMBLE ARGS PASSED TO SCRIPT.
 while getopts r:v: option
 do
@@ -138,6 +137,14 @@ git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
 read -p "Press [ENTER] to deploy \""${BRANCH}"\" branch"
 
+# RUN COMPOSER
+if [ -f composer.json ]; then
+    composer install
+fi
+
+npm install
+npm run production
+
 # Checking for git submodules
 if [ -f .gitmodules ];
 then
@@ -148,18 +155,9 @@ else
 echo "No submodule exists"
 fi
 
-# UPDATE CHANGELOG.MD FILE
-echo "Updating CHANGELOG.md release"
-github_changelog_generator ${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME} --token ${GITHUB_ACCESS_TOKEN}
-wait
-echo "Committing CHANGELOG.md to release"
-git add CHANGELOG.md || { echo "Unable to add changelog."; exit 1; }
-git commit -m "Committing updated changelog." || { echo "Unable to commit changelog."; }
-git push origin
-clear
-
 # REMOVE UNWANTED FILES & FOLDERS
 echo "Removing unwanted files..."
+rm -Rf assets/src
 rm -Rf tests
 rm -Rf bower
 rm -Rf tmp
@@ -167,36 +165,46 @@ rm -Rf node_modules
 rm -Rf apigen
 rm -Rf .idea
 rm -Rf .github
+
+# Hidden Files
 rm -f .bowerrc
+rm -f .babelrc
 rm -f .scrutinizer.yml
 rm -f .travis.yml
-rm -f bower.json
-rm -f composer.json
-rm -f composer.lock
-rm -f package.json
-rm -f package-lock.json
 rm -f .CONTRIBUTING.md
 rm -f .gitattributes
 rm -f .gitignore
 rm -f .gitmodules
 rm -f .editorconfig
 rm -f .travis.yml
-rm -f Gruntfile.js
-rm -f GulpFile.js
-rm -f gulpfile.js
-rm -f grunt-instructions.md
 rm -f .jscrsrc
 rm -f .jshintrc
 rm -f .eslintrc
 rm -f .eslintignore
+
+# Other Files
+rm -f bower.json
+rm -f composer.json
+rm -f composer.lock
+rm -f package.json
+rm -f package-lock.json
+rm -f Gruntfile.js
+rm -f GulpFile.js
+rm -f gulpfile.js
+rm -f grunt-instructions.md
 rm -f composer.json
 rm -f phpunit.xml
 rm -f phpunit.xml.dist
+rm -f phpcs.ruleset.xml
 rm -f LICENSE
 rm -f LICENSE.txt
 rm -f README.md
 rm -f CHANGELOG.md
+rm -f CODE_OF_CONDUCT.md
 rm -f readme.md
+rm -f postcss.config.js
+rm -f webpack.config.js
+
 wait
 echo "All cleaned! Proceeding..."
 
@@ -211,20 +219,9 @@ git tag -a ${VERSION} -m "Tagging version: $VERSION"
 git push origin --tags # push tags to remote
 echo "";
 
-# USE GREN TO PRETTY UP THE RELEASE NOTES
-gren release --token ${GITHUB_ACCESS_TOKEN}
-echo "GitHub Release Created...";
-
-# UPDATE Give-Add-on-Releases README.md
-echo "";
-echo "Updating Give-Addon-Releases...";
-git clone --progress "git@github.com:WordImpress/Give-Addon-Releases.git" "give-addon-releases" || { echo "Unable to clone repo."; exit 1; }
-cd "give-addon-releases"
-sed -i -e 's/|:----------|:-------------:|------:|/|:----------|:-------------:|------:|\
-| Devin |  "$VERSION" | $1210 |/g' README.md
-git commit -am "Committing updated add-on releases." || { echo "Unable to commit."; }
-git push origin
-echo "";
+# USE GREN TO PRETTY UP THE RELEASE NOTES (OPTIONAL)
+# gren release --token ${GITHUB_ACCESS_TOKEN}
+# echo "GitHub Release Created...";
 
 # CLOSE GITHUB MILESTONE
 echo "Closing the GitHub milestone";
@@ -241,11 +238,12 @@ clear
 NEWLINE="
 "
 HTMLVER="\`${VERSION}\`"
+TODAYPRETTY=$(date -u +"%m-%d-%Y @ %H:%M")
 echo "";
-echo "Updating Give-Addon-Releases...";
-#git clone --progress "git@github.com:WordImpress/Give-Addon-Releases.git" "give-addon-releases" || { echo "Unable to clone repo."; exit 1; }
+echo "Updating give-addon-releases...";
+git clone --progress "git@github.com:impress-org/give-addon-releases.git" "give-addon-releases" || { echo "Unable to clone repo."; exit 1; }
 cd "give-addon-releases"
-sed -i -e "s/|:----------|:-------------:|------:|/|:----------|:-------------:|------:|\\${NEWLINE}| Devin | ${GITHUB_REPO_NAME} | ${HTMLVER} |/g" README.md
+sed -i -e "s/|:----------|:-------------:|------:|/|:----------|:-------------:|------:|\\${NEWLINE}| ${GITHUB_REPO_NAME} | ${TODAYPRETTY} | ${HTMLVER} |/g" README.md
 git commit -am "Committing updated add-on releases." || { echo "Unable to commit."; }
 git push origin
 cd ..
@@ -253,6 +251,7 @@ rm -Rf "give-addon-releases"
 echo ""
 
 # REMOVE .GIT DIR AS WE'RE DONE WITH GIT
+cd "$ROOT_PATH$TEMP_GITHUB_REPO"
 rm -Rf .git
 sleep 3
 clear
@@ -278,13 +277,13 @@ mv /tmp/readme.txt "$ROOT_PATH$PLUGIN_SLUG"
 echo ""
 
 # SECURE COPY FILES OVER TO GIVEWP.COM
-#scp "$PLUGIN_SLUG".zip
-#scp "$PLUGIN_SLUG".zip
+#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins LIVE
+#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24442/dom24442/downloads/plugins/ STAGING
 echo "--------------------------------------------------"
 read -p "Are you ready to move the files to givewp.com?"
 echo "--------------------------------------------------"
-scp "$PLUGIN_SLUG".zip
-scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt
+scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins
+scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins/"$PLUGIN_SLUG"
 echo "Files transferred..."
 echo ""
 
