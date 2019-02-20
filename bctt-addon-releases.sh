@@ -9,11 +9,7 @@
 # - v =  enter the version number that you would like to be released.
 #
 # NOTES:
-#
-# You need the following installed globally:
-#
-# 1. github-release-notes : https://github.com/github-tools/github-release-notes
-# 2. github-changelog-generator : https://github.com/skywinder/github-changelog-generator
+# 
 #
 # Disclaimer:
 #
@@ -36,7 +32,7 @@
 GITHUB_ACCESS_TOKEN=""
 
 # GITHUB user who owns the repo
-GITHUB_REPO_OWNER=""
+GITHUB_REPO_OWNER="benunc"
 
 # ----- STOP EDITING HERE -----
 
@@ -47,6 +43,7 @@ do
  in
  r) GITHUB_REPO_NAME=${OPTARG};;
  v) VERSION=${OPTARG};;
+
  esac
 done
 
@@ -142,8 +139,10 @@ if [ -f composer.json ]; then
     composer install
 fi
 
-npm install
-npm run production
+if [ -f package.json ]; then
+    npm install
+    npm run build
+fi
 
 # Checking for git submodules
 if [ -f .gitmodules ];
@@ -222,40 +221,6 @@ echo "";
 # USE GREN TO PRETTY UP THE RELEASE NOTES (OPTIONAL)
 # gren release --token ${GITHUB_ACCESS_TOKEN}
 # echo "GitHub Release Created...";
-
-# REMOVE .GIT DIR AS WE'RE DONE WITH GIT
-cd "$ROOT_PATH$TEMP_GITHUB_REPO"
-rm -Rf .git
-sleep 3
-clear
-
-# Create the Zip File
-echo "Creating zip package..."
-cd "$ROOT_PATH"
-mv "$TEMP_GITHUB_REPO" "$PLUGIN_SLUG" #Rename cleaned repo
-wait
-zip -r "$PLUGIN_SLUG".zip "$PLUGIN_SLUG" #Zip it
-wait
-mv "$PLUGIN_SLUG" "$TEMP_GITHUB_REPO" #Rename back to temp dir
-wait
-echo "Zip package created"
-echo ""
-
-# REMOVE EVERYTHING BUT THE README FILE IN THE FOLDER
-echo "Creatings readme.txt file for website:"
-mv "$ROOT_PATH$TEMP_GITHUB_REPO"/readme.txt /tmp/
-rm -rf "$ROOT_PATH$TEMP_GITHUB_REPO"
-mkdir "$ROOT_PATH$PLUGIN_SLUG"
-mv /tmp/readme.txt "$ROOT_PATH$PLUGIN_SLUG"
-echo ""
-
-# SECURE COPY README FILE TO betterclicktotweet.com
-echo "-----------------------------------------------------------------"
-read -p "Are you ready to move the readme file to betterclicktotweet.com?"
-echo "-----------------------------------------------------------------"
-scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins/"$PLUGIN_SLUG"
-echo "Files transferred..."
-echo ""
 
 # REMOVE THE TEMP DIRS
 echo "Cleaning up the directory..."
