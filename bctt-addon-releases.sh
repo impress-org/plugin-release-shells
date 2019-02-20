@@ -53,9 +53,9 @@ done
 set -e
 clear
 
-echo "--------------------------------------------"
-echo "    Welcome to the Give Add-on Releaser     "
-echo "--------------------------------------------"
+echo "-------------------------------------------------------------"
+echo "    Welcome to the Better Click To Tweet Add-on Releaser     "
+echo "-------------------------------------------------------------"
 
 # Is GITHUB_REPO_NAME var set?
 if [ "$GITHUB_REPO_NAME" = "" ]; then
@@ -223,33 +223,6 @@ echo "";
 # gren release --token ${GITHUB_ACCESS_TOKEN}
 # echo "GitHub Release Created...";
 
-# CLOSE GITHUB MILESTONE
-echo "Closing the GitHub milestone";
-TODAY=$(date -u +"%Y-%m-%dT%H:%MZ")
-API_JSON=$(printf '{ "title": "%s", "state": "closed",  "description": "%s milestone", "due_on": "%s"}' $VERSION $VERSION $TODAY)
-RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/milestones/${VERSION}?access_token=${GITHUB_ACCESS_TOKEN})
-wait
-echo "$API_JSON"
-echo "$RESULT"
-sleep 3
-clear
-
-# UPDATE Give-Add-on-Releases README.md
-NEWLINE="
-"
-HTMLVER="\`${VERSION}\`"
-TODAYPRETTY=$(date -u +"%m-%d-%Y @ %H:%M")
-echo "";
-echo "Updating give-addon-releases...";
-git clone --progress "git@github.com:impress-org/give-addon-releases.git" "give-addon-releases" || { echo "Unable to clone repo."; exit 1; }
-cd "give-addon-releases"
-sed -i -e "s/|:----------|:-------------:|------:|/|:----------|:-------------:|------:|\\${NEWLINE}| ${GITHUB_REPO_NAME} | ${TODAYPRETTY} | ${HTMLVER} |/g" README.md
-git commit -am "Committing updated add-on releases." || { echo "Unable to commit."; }
-git push origin
-cd ..
-rm -Rf "give-addon-releases"
-echo ""
-
 # REMOVE .GIT DIR AS WE'RE DONE WITH GIT
 cd "$ROOT_PATH$TEMP_GITHUB_REPO"
 rm -Rf .git
@@ -276,13 +249,10 @@ mkdir "$ROOT_PATH$PLUGIN_SLUG"
 mv /tmp/readme.txt "$ROOT_PATH$PLUGIN_SLUG"
 echo ""
 
-# SECURE COPY FILES OVER TO GIVEWP.COM
-#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins LIVE
-#scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24442/dom24442/downloads/plugins/ STAGING
-echo "--------------------------------------------------"
-read -p "Are you ready to move the files to givewp.com?"
-echo "--------------------------------------------------"
-scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins
+# SECURE COPY README FILE TO betterclicktotweet.com
+echo "-----------------------------------------------------------------"
+read -p "Are you ready to move the readme file to betterclicktotweet.com?"
+echo "-----------------------------------------------------------------"
 scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins/"$PLUGIN_SLUG"
 echo "Files transferred..."
 echo ""
