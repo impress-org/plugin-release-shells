@@ -91,6 +91,7 @@ read -p " - Added a changelog for "${VERSION}"?"
 read -p " - Set version in the readme.txt and main file to "${VERSION}"?"
 read -p " - Set stable tag in the readme.txt file to "${VERSION}"?"
 read -p " - Updated the POT file?"
+read -p " - Updated the version number in the LICENSE callback?"
 read -p " - Committed all changes up to GitHub?"
 echo ""
 read -p "Press [ENTER] to begin releasing "${VERSION}
@@ -104,6 +105,7 @@ GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
 
 # DELETE OLD TEMP DIRS BEFORE BEGINNING
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
+rm -Rf "$PLUGIN_SLUG"
 
 # CLONE GIT DIR
 echo "Cloning GIT repository from GitHub"
@@ -154,6 +156,19 @@ else
 echo "No submodule exists"
 fi
 
+# PROMPT USER
+echo ""
+read -p "Press [ENTER] to commit release "${VERSION}" to GitHub"
+echo ""
+
+# CREATE THE GITHUB RELEASE
+echo "Creating GitHub tag and release"
+git tag -a "v"${VERSION} -m "Tagging version: $VERSION." -m "The ZIP and TAR.GZ here are not production-ready." -m "Build by checking out the release and running composer install, npm install, and npm run build."
+
+git push origin --tags # push tags to remote
+echo "";
+
+
 # REMOVE UNWANTED FILES & FOLDERS
 echo "Removing unwanted files..."
 rm -Rf assets/src
@@ -164,67 +179,103 @@ rm -Rf node_modules
 rm -Rf apigen
 rm -Rf .idea
 rm -Rf .github
+rm -Rf vendor
 
 # Hidden Files
-rm -f .bowerrc
-rm -f .babelrc
-rm -f .scrutinizer.yml
-rm -f .travis.yml
-rm -f .CONTRIBUTING.md
-rm -f .gitattributes
-rm -f .gitignore
-rm -f .gitmodules
-rm -f .editorconfig
-rm -f .travis.yml
-rm -f .jscrsrc
-rm -f .jshintrc
-rm -f .eslintrc
-rm -f .eslintignore
+rm -rf .bowerrc
+rm -rf .babelrc
+rm -rf .scrutinizer.yml
+rm -rf .travis.yml
+rm -rf .CONTRIBUTING.md
+rm -rf .gitattributes
+rm -rf .gitignore
+rm -rf .gitmodules
+rm -rf .editorconfig
+rm -rf .travis.yml
+rm -rf .jscrsrc
+rm -rf .jshintrc
+rm -rf .eslintrc
+rm -rf .eslintignore
+rm -rf .nvmrc
 
 # Other Files
-rm -f bower.json
-rm -f composer.json
-rm -f composer.lock
-rm -f package.json
-rm -f package-lock.json
-rm -f Gruntfile.js
-rm -f GulpFile.js
-rm -f gulpfile.js
-rm -f grunt-instructions.md
-rm -f composer.json
-rm -f phpunit.xml
-rm -f phpunit.xml.dist
-rm -f phpcs.ruleset.xml
-rm -f LICENSE
-rm -f LICENSE.txt
-rm -f README.md
-rm -f CHANGELOG.md
-rm -f CODE_OF_CONDUCT.md
-rm -f readme.md
-rm -f postcss.config.js
-rm -f webpack.config.js
+rm -rf bower.json
+rm -rf composer.json
+rm -rf composer.lock
+rm -rf package.json
+rm -rf package-lock.json
+rm -rf Gruntfile.js
+rm -rf GulpFile.js
+rm -rf gulpfile.js
+rm -rf grunt-instructions.md
+rm -rf composer.json
+rm -rf phpunit.xml
+rm -rf phpunit.xml.dist
+rm -rf phpcs.ruleset.xml
+rm -rf phpcs.xml
+rm -rf LICENSE
+rm -rf LICENSE.txt
+rm -rf README.md
+rm -rf CHANGELOG.md
+rm -rf CODE_OF_CONDUCT.md
+rm -rf readme.md
+rm -rf postcss.config.js
+rm -rf webpack.config.js
+rm -rf docker-compose.yml
 
 wait
 echo "All cleaned! Proceeding..."
 
-# PROMPT USER
-echo ""
-read -p "Press [ENTER] to commit release "${VERSION}" to GitHub"
-echo ""
-
-# CREATE THE GITHUB RELEASE
-echo "Creating GitHub tag and release"
-git tag -a ${VERSION} -m "Tagging version: $VERSION"
-git push origin --tags # push tags to remote
-echo "";
 
 # USE GREN TO PRETTY UP THE RELEASE NOTES (OPTIONAL)
 # gren release --token ${GITHUB_ACCESS_TOKEN}
 # echo "GitHub Release Created...";
 
+# REMOVE .GIT DIR AS WE'RE DONE WITH GIT
+cd "$ROOT_PATH$TEMP_GITHUB_REPO"
+rm -Rf .git
+sleep 3
+clear
+read -p "Check to make sure .git is removed"
+echo ""
+
+# Create the Zip File
+echo "Creating zip package..."
+cd "$ROOT_PATH"
+mv "$TEMP_GITHUB_REPO" "$PLUGIN_SLUG" #Rename cleaned repo
+
+read -p "check renamed repo"
+echo ""
+wait
+zip -r "$PLUGIN_SLUG".zip "$PLUGIN_SLUG" #Zip it
+wait
+
+mv "$PLUGIN_SLUG" "$TEMP_GITHUB_REPO" #Rename back to temp dir
+wait
+echo "Zip package created"
+echo ""
+
+# REMOVE EVERYTHING BUT THE README FILE IN THE FOLDER
+echo "Creating readme.txt file for website:"
+mv "$ROOT_PATH$TEMP_GITHUB_REPO"/readme.txt /tmp/
+rm -rf "$ROOT_PATH$TEMP_GITHUB_REPO"
+mkdir "$ROOT_PATH$PLUGIN_SLUG"
+mv /tmp/readme.txt "$ROOT_PATH$PLUGIN_SLUG"
+echo ""
+
+# SECURE COPY FILES OVER TO GIVEWP.COM
+echo "------------------------------------------------------------"
+read -p "Are you ready to move the files to betterclicktotweet.com?"
+echo "------------------------------------------------------------"
+scp "$PLUGIN_SLUG".zip bctt-user@192.34.56.118:/srv/users/bctt-user/apps/betterclicktotweet/public/wp-content/uploads/edd/addons/
+scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt bctt-user@192.34.56.118:/srv/users/bctt-user/apps/betterclicktotweet/public/wp-content/uploads/edd/addons/"$PLUGIN_SLUG".txt
+echo "Files transferred..."
+echo ""
+
 # REMOVE THE TEMP DIRS
 echo "Cleaning up the directory..."
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
+rm -Rf "$PLUGIN_SLUG"
 
 # DONE, BYE
 echo "Releaser done :D"
