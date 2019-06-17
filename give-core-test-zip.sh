@@ -37,6 +37,7 @@ echo "--------------------------------------------"
 echo "      Github Test ZIP extractor             "
 echo "--------------------------------------------"
 read -p "CREATE ZIP OF VERSION: " VERSION
+read -p "Send to GDrive? (type y or n):" DRIVE
 echo "--------------------------------------------"
 echo ""
 echo "Before continuing, confirm that you have done the following :)"
@@ -161,10 +162,17 @@ rm -rf includes/libraries/tcpdf/fonts/uni2cid*
 cd ..
 read -p "PRESS ENTER TO CREATE ZIP OF VERSION "${VERSION}
 zip -r give.zip give
+
+# TODO: make sure this path works for Windows machines.
 mv give.zip ~/Desktop/give.zip
-cd ~/Desktop
-read -p "PRESS ENTER TO COPY ZIP TO GOOGLE DRIVE"
-cp give.zip /Volumes/GoogleDrive/My\ Drive/IMPRESS/SUPPORT\ TEAM/PLUGINS/give.zip
+
+if [ ${DRIVE} = "y" ]; then
+    cd ~/Desktop
+    read -p "PRESS ENTER TO COPY ZIP TO GOOGLE DRIVE"
+# TODO: make this path something more universal.
+# It currently only works on my machine to copy something to Drive
+    cp give.zip /Volumes/GoogleDrive/My\ Drive/IMPRESS/SUPPORT\ TEAM/PLUGINS/give.zip
+fi
 
 # REMOVE THE TEMP DIRS
 read -p "Ready to clean up?"
@@ -173,4 +181,5 @@ cd "$ROOT_PATH$TEMP_GITHUB_REPO"
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 
 # DONE, BYE
-echo "RELEASER DONE :D"
+# TODO: modify language here to let people know whether the upload to the cloud was successful.
+echo "ZIPper DONE. The file is on your desktop :D"
