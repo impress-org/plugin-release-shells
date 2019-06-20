@@ -159,9 +159,10 @@ rm -rf includes/libraries/tcpdf/fonts/pdf*
 rm -rf includes/libraries/tcpdf/fonts/times*
 rm -rf includes/libraries/tcpdf/fonts/uni2cid*
 
-cd ..
+
 read -p "PRESS ENTER TO CREATE ZIP OF VERSION "${VERSION}
-zip -r give.zip give
+zip -r ../give.zip *
+cd ..
 
 # TODO: make sure this path works for Windows machines.
 mv give.zip ~/Desktop/give.zip
