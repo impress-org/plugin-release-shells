@@ -61,7 +61,7 @@ GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
 rm -Rf  $TEMP_GITHUB_REPO
 # rm -Rf $TEMP_SVN_REPO
 
-# CHECKOUT SVN DIR IF IT DOESN'T EXIST
+# CHECKOUT SVN DIR IF IT DOESN'T EXIST ALREADY
 if [[ ! -d $TEMP_SVN_REPO ]];
 then
 	echo "Checking out WordPress.org plugin repository"
