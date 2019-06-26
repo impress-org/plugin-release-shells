@@ -138,8 +138,17 @@ if [ -f composer.json ]; then
     composer install
 fi
 
-npm install
-npm run production
+
+# RUN NPM
+if [ -f package.json ]; then
+    npm install --if-present
+    npm run production --if-present
+fi
+
+# RUN GULP
+if [ -f gulpfile.js ]; then
+gulp
+fi
 
 # Checking for git submodules
 if [ -f .gitmodules ];
