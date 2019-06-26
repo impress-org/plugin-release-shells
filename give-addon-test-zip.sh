@@ -54,7 +54,7 @@ set -e
 clear
 
 echo "--------------------------------------------"
-echo "    Welcome to the Give Add-on Releaser     "
+echo "    Welcome to the Give Add-on Test ZIPper     "
 echo "--------------------------------------------"
 
 # Is GITHUB_REPO_NAME var set?
@@ -64,7 +64,7 @@ fi
 
 # Is VERSION var set?
 if [ "$VERSION" = "" ]; then
-    read -p "Tag and release version for $GITHUB_REPO_NAME: " VERSION
+    read -p "Create TEST ZIP of what version for $GITHUB_REPO_NAME: " VERSION
 fi
 
 # Lowercase a slug guess from repo to speed things up.
@@ -81,7 +81,7 @@ if [ "$VERSION" = "" ]; then
 fi
 
 echo "----------------------------------------------------"
-echo "    GETTING READY TO RELEASE " GITHUB_REPO_NAME
+echo "    GETTING READY TO ZIP " GITHUB_REPO_NAME
 echo "----------------------------------------------------"
 
 clear
