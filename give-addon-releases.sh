@@ -142,12 +142,14 @@ if [ -f composer.json ]; then
     composer install
 fi
 
-npm install
-npm run production
+echo "Running npm install and production if available."
+if [ -f package.json ]; then
+npm install --if-present
+npm run production --if-present
+fi
 
 # Checking for git submodules
-if [ -f .gitmodules ];
-then
+if [ -f .gitmodules ]; then
 echo "Submodule found. Updating"
 git submodule init
 git submodule update
