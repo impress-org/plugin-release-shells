@@ -15,9 +15,6 @@
 
 # ----- START EDITING HERE -----
 
-# THE GITHUB ACCESS TOKEN, GENERATE ONE AT: https://github.com/settings/tokens
-GITHUB_ACCESS_TOKEN=""
-
 # The slug of your WordPress.org plugin
 PLUGIN_SLUG="give"
 
@@ -50,7 +47,7 @@ clear
 # VARS
 ROOT_PATH=$(pwd)"/"
 TEMP_GITHUB_REPO=${PLUGIN_SLUG}
-GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
+GIT_REPO="https://github.com/"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
 
 # DELETE OLD TEMP DIRS
 rm -Rf  $TEMP_GITHUB_REPO
@@ -78,6 +75,8 @@ read -p "PRESS [ENTER] TO PREPARE LOCAL BRANCH FOR ZIPPING"
 
 # RUN COMPOSER
 composer install
+# npm cache verify
+npm install cross-env
 npm install
 npm run build
 
