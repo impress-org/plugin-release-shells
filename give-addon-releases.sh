@@ -183,6 +183,11 @@ rm -f .jscrsrc
 rm -f .jshintrc
 rm -f .eslintrc
 rm -f .eslintignore
+rm -f .eslintrc.json
+rm -f .prettierignore
+rm -f .stylelintrc.json
+rm -f .huskyrc.json
+rm -f .lintstagedrc.json
 
 # Other Files
 rm -f bower.json
@@ -221,28 +226,15 @@ git tag -a ${VERSION} -m "Tagging version: $VERSION"
 git push origin --tags # push tags to remote
 echo "";
 
-# USE GREN TO PRETTY UP THE RELEASE NOTES (OPTIONAL)
-# gren release --token ${GITHUB_ACCESS_TOKEN}
-# echo "GitHub Release Created...";
-
-# CLOSE GITHUB MILESTONE
-echo "Closing the GitHub milestone";
-TODAY=$(date -u +"%Y-%m-%dT%H:%MZ")
-API_JSON=$(printf '{ "title": "%s", "state": "closed",  "description": "%s milestone", "due_on": "%s"}' $VERSION $VERSION $TODAY)
-RESULT=$(curl --data "${API_JSON}" https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/milestones/${VERSION}?access_token=${GITHUB_ACCESS_TOKEN})
-wait
-echo "$API_JSON"
-echo "$RESULT"
-sleep 3
-clear
-
 # UPDATE Give-Add-on-Releases README.md
 NEWLINE="
 "
 HTMLVER="\`${VERSION}\`"
 TODAYPRETTY=$(date -u +"%m-%d-%Y @ %H:%M")
 echo "";
+echo "--------------------------------------------------"
 echo "Updating give-addon-releases...";
+echo "--------------------------------------------------"
 git clone --progress "git@github.com:impress-org/give-addon-releases.git" "give-addon-releases" || { echo "Unable to clone repo."; exit 1; }
 cd "give-addon-releases"
 sed -i -e "s/|:----------|:-------------:|------:|/|:----------|:-------------:|------:|\\${NEWLINE}| ${GITHUB_REPO_NAME} | ${TODAYPRETTY} | ${HTMLVER} |/g" README.md
@@ -259,7 +251,9 @@ sleep 3
 clear
 
 # Create the Zip File
+echo "--------------------------------------------------"
 echo "Creating zip package..."
+echo "--------------------------------------------------"
 cd "$ROOT_PATH"
 mv "$TEMP_GITHUB_REPO" "$PLUGIN_SLUG" #Rename cleaned repo
 wait
@@ -271,7 +265,10 @@ echo "Zip package created"
 echo ""
 
 # REMOVE EVERYTHING BUT THE README FILE IN THE FOLDER
+echo ""
+echo "--------------------------------------------------"
 echo "Creatings readme.txt file for website:"
+echo "--------------------------------------------------"
 mv "$ROOT_PATH$TEMP_GITHUB_REPO"/readme.txt /tmp/
 rm -rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 mkdir "$ROOT_PATH$PLUGIN_SLUG"
@@ -289,10 +286,41 @@ scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt client_devin@54.156.11.193:/data/s828204
 echo "Files transferred..."
 echo ""
 
-# REMOVE THE TEMP DIRS
+
+# CLEAR SUCURI WAF CACHE
+echo ""
+echo "--------------------------------------------------"
+echo "Clearing Sucuri WAF cache for the Zip file"
+echo "--------------------------------------------------"
+curl 'https://waf.sucuri.net/api?v2' \
+--data 'k=' \
+--data 's=' \
+--data 'a=clear_cache' \
+--data "file=$ROOT_PATH$PLUGIN_SLUG.zip"
+echo ""
+
+# CLEAR SUCURI WAF CACHE
+echo ""
+echo "--------------------------------------------------"
+echo "Clearing Sucuri WAF cache for the Readme file"
+echo "--------------------------------------------------"
+curl 'https://waf.sucuri.net/api?v2' \
+--data 'k=' \
+--data 's=' \
+--data 'a=clear_cache' \
+--data "file=$ROOT_PATH$PLUGIN_SLUG/readme.txt"
+echo ""
+
+echo ""
+echo "--------------------------------------------------"
 echo "Cleaning up the directory..."
+echo "--------------------------------------------------"
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
+echo ""
+
 
 # DONE, BYE
-echo "Releaser done :D"
-echo "What's left? Update the version number in EDD!"
+echo "--------------------------------------------------"
+echo "Releaser done!"
+echo "--------------------------------------------------"
+echo "What's left? Update the version number in EDD and publish the draft tag in the GitHub repository!"
