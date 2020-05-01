@@ -47,6 +47,8 @@ do
  in
  r) GITHUB_REPO_NAME=${OPTARG};;
  v) VERSION=${OPTARG};;
+ *) echo "Incorrect arguments passed in. Missing [-r] or [-v]" >&2
+	 exit 1;;
  esac
 done
 
@@ -59,25 +61,25 @@ echo "--------------------------------------------"
 
 # Is GITHUB_REPO_NAME var set?
 if [ "$GITHUB_REPO_NAME" = "" ]; then
-    read -p "GitHub Add-on repo name: " GITHUB_REPO_NAME
+    read -rp "GitHub Add-on repo name: " GITHUB_REPO_NAME
 fi
 
 # Is VERSION var set?
 if [ "$VERSION" = "" ]; then
-    read -p "Tag and release version for $GITHUB_REPO_NAME: " VERSION
+    read -rp "Tag and release version for $GITHUB_REPO_NAME: " VERSION
 fi
 
 # Lowercase a slug guess from repo to speed things up.
-SLUG_GUESS="$(tr [A-Z] [a-z] <<< "$GITHUB_REPO_NAME")"
+SLUG_GUESS="$(tr 'A-Z' 'a-z' <<< "$GITHUB_REPO_NAME")"
 
-read -p "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
+read -rp "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
 PLUGIN_SLUG=${PLUGIN_SLUG:-$SLUG_GUESS}
 
 # Verify there's a version number
 # now check if $x is "y"
 if [ "$VERSION" = "" ]; then
     # do something here!
-    read -p "You forgot the plugin version: " VERSION
+    read -rp "You forgot the plugin version: " VERSION
 fi
 
 echo "----------------------------------------------------"
@@ -90,27 +92,27 @@ clear
 echo ""
 echo "Before continuing, confirm that you have done the following :)"
 echo ""
-read -p " - Added a changelog for "${VERSION}"?"
-read -p " - Set version in the readme.txt and main file to "${VERSION}"?"
-read -p " - Set stable tag in the readme.txt file to "${VERSION}"?"
-read -p " - Updated the POT file?"
-read -p " - Committed all changes up to GitHub?"
+read -rp " - Added a changelog for ${VERSION}?"
+read -rp " - Set version in the readme.txt and main file to ${VERSION}?"
+read -rp " - Set stable tag in the readme.txt file to ${VERSION}?"
+read -rp " - Updated the POT file?"
+read -rp " - Committed all changes up to GitHub?"
 echo ""
-read -p "Press [ENTER] to begin releasing "${VERSION}
+read -rp "Press [ENTER] to begin releasing ${VERSION}"
 clear
 
 
 # SET VARS
 ROOT_PATH=$(pwd)"/"
 TEMP_GITHUB_REPO=${PLUGIN_SLUG}"-git"
-GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
+GIT_REPO="git@github.com:${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git"
 
 # DELETE OLD TEMP DIRS BEFORE BEGINNING
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
 
 # CLONE GIT DIR
 echo "Cloning GIT repository from GitHub"
-git clone --progress $GIT_REPO $TEMP_GITHUB_REPO || { echo "Unable to clone repo."; exit 1; }
+git clone --progress "$GIT_REPO" "$TEMP_GITHUB_REPO" || { echo "Unable to clone repo."; exit 1; }
 
 # MOVE INTO GIT DIR
 cd "$ROOT_PATH$TEMP_GITHUB_REPO"
@@ -121,7 +123,7 @@ git fetch origin
 echo "Which branch do you wish to deploy?"
 git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
-read -p "origin/master" BRANCH
+read -rp "origin/master" BRANCH
 
 # If no branch default var to master
 if [ "$BRANCH" = "" ]; then
@@ -135,7 +137,7 @@ fi
 
 git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
-read -p "Press [ENTER] to deploy \""${BRANCH}"\" branch"
+read -rp "Press [ENTER] to deploy \"${BRANCH}\" branch"
 
 # RUN COMPOSER
 if [ -f composer.json ]; then
@@ -217,12 +219,13 @@ echo "All cleaned! Proceeding..."
 
 # PROMPT USER
 echo ""
-read -p "Press [ENTER] to commit release "${VERSION}" to GitHub"
+read -rp "Press [ENTER] to commit release ${VERSION} to GitHub"
+
 echo ""
 
 # CREATE THE GITHUB RELEASE
 echo "Creating GitHub tag and release"
-git tag -a ${VERSION} -m "Tagging version: $VERSION"
+git tag -a "${VERSION}" -m "Tagging version: $VERSION"
 git push origin --tags # push tags to remote
 echo "";
 
@@ -279,7 +282,7 @@ echo ""
 #scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins LIVE
 #scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24442/dom24442/downloads/plugins/ STAGING
 echo "--------------------------------------------------"
-read -p "Are you ready to move the files to givewp.com?"
+read -rp "Are you ready to move the files to givewp.com?"
 echo "--------------------------------------------------"
 scp "$PLUGIN_SLUG".zip client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins
 scp "$ROOT_PATH$PLUGIN_SLUG"/readme.txt client_devin@54.156.11.193:/data/s828204/dom24402/dom24402/downloads/plugins/"$PLUGIN_SLUG"
