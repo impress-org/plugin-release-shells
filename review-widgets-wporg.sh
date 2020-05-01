@@ -42,25 +42,25 @@ echo "--------------------------------------------"
 
 # Is GITHUB_REPO_NAME var set?
 if [ "$GITHUB_REPO_NAME" = "" ]; then
-    read -p "GitHub Add-on repo name: " GITHUB_REPO_NAME
+    read -rp "GitHub Add-on repo name: " GITHUB_REPO_NAME
 fi
 
 # Is VERSION var set?
 if [ "$VERSION" = "" ]; then
-    read -p "Tag and release version for $GITHUB_REPO_NAME: " VERSION
+    read -rp "Tag and release version for $GITHUB_REPO_NAME: " VERSION
 fi
 
 # Lowercase a slug guess from repo to speed things up.
 SLUG_GUESS="$(tr [A-Z] [a-z] <<< "$GITHUB_REPO_NAME")"
 
-read -p "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
+read -rp "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
 PLUGIN_SLUG=${PLUGIN_SLUG:-$SLUG_GUESS}
 
 # Verify there's a version number
 # now check if $x is "y"
 if [ "$VERSION" = "" ]; then
     # do something here!
-    read -p "You forgot the plugin version: " VERSION
+    read -rp "You forgot the plugin version: " VERSION
 fi
 
 clear
@@ -68,13 +68,13 @@ clear
 # ASK INFO
 echo "Before continuing, confirm that you have done the following :)"
 echo ""
-read -p " - Added a changelog for "${VERSION}"?"
-read -p " - Set version in the readme.txt and main file to "${VERSION}"?"
-read -p " - Set stable tag in the readme.txt file to "${VERSION}"?"
-read -p " - Updated the POT file?"
-read -p " - Committed all changes up to GITHUB?"
+read -rp " - Added a changelog for "${VERSION}"?"
+read -rp " - Set version in the readme.txt and main file to "${VERSION}"?"
+read -rp " - Set stable tag in the readme.txt file to "${VERSION}"?"
+read -rp " - Updated the POT file?"
+read -rp " - Committed all changes up to GITHUB?"
 echo ""
-read -p "PRESS [ENTER] TO BEGIN RELEASING "${VERSION}
+read -rp "PRESS [ENTER] TO BEGIN RELEASING "${VERSION}
 clear
 
 # VARS
@@ -108,13 +108,13 @@ git fetch origin
 echo "WHICH BRANCH DO YOU WISH TO DEPLOY?"
 git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
-read -p "origin/" BRANCH
+read -rp "origin/" BRANCH
 
 # SWITCH TO BRANCH
 echo "Switching to branch"
 git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
-read -p "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
+read -rp "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
 
 # RUN COMPOSER
 npm install
@@ -212,7 +212,7 @@ svn status
 
 # PROMPT USER
 echo ""
-read -p "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG"
+read -rp "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG"
 echo ""
 
 # DEPLOY

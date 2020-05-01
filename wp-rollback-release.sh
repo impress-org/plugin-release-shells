@@ -39,18 +39,18 @@ clear
 echo "--------------------------------------------"
 echo "      Github to WordPress.org RELEASER      "
 echo "--------------------------------------------"
-read -p "TAG AND RELEASE VERSION: " VERSION
+read -rp "TAG AND RELEASE VERSION: " VERSION
 echo "--------------------------------------------"
 echo ""
 echo "Before continuing, confirm that you have done the following :)"
 echo ""
-read -p " - Added a changelog for "${VERSION}"?"
-read -p " - Set version in the readme.txt and main file to "${VERSION}"?"
-read -p " - Set stable tag in the readme.txt file to "${VERSION}"?"
-read -p " - Updated the POT file?"
-read -p " - Committed all changes up to GITHUB?"
+read -rp " - Added a changelog for "${VERSION}"?"
+read -rp " - Set version in the readme.txt and main file to "${VERSION}"?"
+read -rp " - Set stable tag in the readme.txt file to "${VERSION}"?"
+read -rp " - Updated the POT file?"
+read -rp " - Committed all changes up to GITHUB?"
 echo ""
-read -p "PRESS [ENTER] TO BEGIN RELEASING "${VERSION}
+read -rp "PRESS [ENTER] TO BEGIN RELEASING "${VERSION}
 clear
 
 # VARS
@@ -84,13 +84,13 @@ git fetch origin
 echo "WHICH BRANCH DO YOU WISH TO DEPLOY?"
 git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
-read -p "origin/" BRANCH
+read -rp "origin/" BRANCH
 
 # Switch Branch
 echo "Switching to branch"
 git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
 echo ""
-read -p "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
+read -rp "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
 
 # REMOVE UNWANTED FILES & FOLDERS
 echo "Removing unwanted files"
@@ -167,7 +167,7 @@ svn status
 
 # PROMPT USER
 echo ""
-read -p "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG AND GITHUB"
+read -rp "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG AND GITHUB"
 echo ""
 
 # CREATE THE GITHUB RELEASE
