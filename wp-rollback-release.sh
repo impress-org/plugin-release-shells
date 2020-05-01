@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # By Mike Jolley, based on work by Barry Kooij ;)
 # License: GPL v3
