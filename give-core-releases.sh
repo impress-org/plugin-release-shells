@@ -205,7 +205,7 @@ done
 
 # COPY TRUNK TO TAGS/$VERSION
 echo "Copying trunk to new tag"
-svn copy trunk tags/${VERSION} || { echo "Unable to create tag."; exit 1; }
+svn copy trunk tags/"${VERSION}" || { echo "Unable to create tag."; exit 1; }
 
 # DO SVN COMMIT
 clear
@@ -220,7 +220,7 @@ echo ""
 # DEPLOY
 echo ""
 echo "Committing to WordPress.org...this may take a while..."
-svn commit -m "Release "${VERSION}", see readme.txt for changelog." || { echo "Unable to commit."; exit 1; }
+svn commit -m "Release ${VERSION}, see readme.txt for changelog." || { echo "Unable to commit."; exit 1; }
 
 # REMOVE THE TEMP DIRS
 echo "CLEANING UP"
