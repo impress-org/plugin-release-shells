@@ -1,22 +1,5 @@
 #!/usr/bin/env bash
 
-# GITHUB ADD-ON RELEASER
-#
-# READ BEFORE USING:
-#
-# YOU CAN PASS THE FOLLOWING ARGS:
-# - r = enter the name of the github repo as it appears.
-# - v =  enter the version number that you would like to be released.
-#
-# NOTES:
-#
-# You need the following installed globally:
-#
-# 1. github-release-notes : https://github.com/github-tools/github-release-notes
-# 2. github-changelog-generator : https://github.com/skywinder/github-changelog-generator
-#
-# Disclaimer:
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or

@@ -128,6 +128,12 @@ rm -f .jscrsrc
 rm -f .jshintrc
 rm -f .eslintignore
 rm -f .eslintrc
+rm -f .eslintrc.json
+rm -f .prettierrc.json
+rm -f .prettierignore
+rm -f .stylelintrc.json
+rm -f .huskyrc.json
+rm -f .lintstagedrc.json
 
 # Other Files
 rm -f sample-data/wordpress.sql
@@ -150,6 +156,7 @@ rm -f contributing.md
 rm -f postcss.config.js
 rm -f webpack.config.js
 rm -f docker-compose.yml
+rm -f wp-textdomain.js
 
 # Delete un-used fonts
 rm -rf includes/libraries/tcpdf/fonts/ae_fonts_2.0
