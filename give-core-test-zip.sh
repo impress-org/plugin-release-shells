@@ -74,7 +74,7 @@ echo ""
 read -p "PRESS [ENTER] TO PREPARE LOCAL BRANCH FOR ZIPPING"
 
 # RUN COMPOSER
-composer install
+composer install --no-dev
 # npm cache verify
 npm install cross-env
 npm install

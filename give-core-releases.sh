@@ -90,7 +90,7 @@ echo ""
 read -p "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
 
 # RUN COMPOSER
-composer install
+composer install --no-dev
 npm install
 npm run build
 

@@ -139,7 +139,7 @@ read -p "Press [ENTER] to deploy \""${BRANCH}"\" branch"
 
 # RUN COMPOSER
 if [ -f composer.json ]; then
-    composer install
+    composer install --no-dev
 fi
 
 echo "Running npm install and production if available."
