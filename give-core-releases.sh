@@ -105,6 +105,8 @@ rm -Rf vendor/wp-coding-standards
 rm -Rf vendor/tecnickcom/tcpdf/examples
 rm -Rf vendor/tecnickcom/tcpdf/tools
 rm -Rf vendor/composer/installers
+rm -Rf vendor/dealerdirect
+rm -Rf vendor/phpcompatibility
 rm -Rf vendor/bin
 rm -Rf tmp
 rm -Rf node_modules
@@ -112,6 +114,7 @@ rm -Rf apigen
 rm -Rf assets/src
 rm -Rf .idea
 rm -Rf .github
+rm -Rf .storybook
 
 # Hidden Files
 rm -f .bowerrc
@@ -157,6 +160,7 @@ rm -f postcss.config.js
 rm -f webpack.config.js
 rm -f docker-compose.yml
 rm -f wp-textdomain.js
+rm -f changelog.txt
 
 # Delete un-used fonts
 rm -rf includes/libraries/tcpdf/fonts/ae_fonts_2.0
@@ -196,7 +200,7 @@ cp -R "$ROOT_PATH$TEMP_GITHUB_REPO" trunk/
 # ADD FILES WITH "@" SYMBOL
 # SEE: https://stackoverflow.com/questions/757435/how-to-escape-characters-in-subversion-managed-file-names
 for file in $(find ./ -type f -name "*@*.png"); do
-   svn add $file@ --force;
+   svn add $file@ --force --parents;
 done
 
 # DO THE ADD ALL NOT KNOWN FILES UNIX COMMAND
@@ -232,7 +236,6 @@ svn commit -m "Release "${VERSION}", see readme.txt for changelog." || { echo "U
 # REMOVE THE TEMP DIRS
 echo "CLEANING UP"
 rm -Rf "$ROOT_PATH$TEMP_GITHUB_REPO"
-rm -Rf "$ROOT_PATH$TEMP_SVN_REPO"
-
+#rm -Rf "$ROOT_PATH$TEMP_SVN_REPO"
 # DONE, BYE
 echo "RELEASER DONE :D"
