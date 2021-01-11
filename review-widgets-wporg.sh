@@ -30,6 +30,8 @@ do
  in
  r) GITHUB_REPO_NAME=${OPTARG};;
  v) VERSION=${OPTARG};;
+ *) echo "Incorrect arguments passed in. Missing [-r] or [-v]" >&2
+	 exit 1;;
  esac
 done
 
@@ -42,25 +44,25 @@ echo "--------------------------------------------"
 
 # Is GITHUB_REPO_NAME var set?
 if [ "$GITHUB_REPO_NAME" = "" ]; then
-    read -p "GitHub Add-on repo name: " GITHUB_REPO_NAME
+    read -rp "GitHub Add-on repo name: " GITHUB_REPO_NAME
 fi
 
 # Is VERSION var set?
 if [ "$VERSION" = "" ]; then
-    read -p "Tag and release version for $GITHUB_REPO_NAME: " VERSION
+    read -rp "Tag and release version for $GITHUB_REPO_NAME: " VERSION
 fi
 
 # Lowercase a slug guess from repo to speed things up.
 SLUG_GUESS="$(tr [A-Z] [a-z] <<< "$GITHUB_REPO_NAME")"
 
-read -p "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
+read -rp "Plugin slug [$SLUG_GUESS]:" PLUGIN_SLUG
 PLUGIN_SLUG=${PLUGIN_SLUG:-$SLUG_GUESS}
 
 # Verify there's a version number
 # now check if $x is "y"
 if [ "$VERSION" = "" ]; then
     # do something here!
-    read -p "You forgot the plugin version: " VERSION
+    read -rp "You forgot the plugin version: " VERSION
 fi
 
 clear
@@ -68,36 +70,36 @@ clear
 # ASK INFO
 echo "Before continuing, confirm that you have done the following :)"
 echo ""
-read -p " - Added a changelog for "${VERSION}"?"
-read -p " - Set version in the readme.txt and main file to "${VERSION}"?"
-read -p " - Set stable tag in the readme.txt file to "${VERSION}"?"
-read -p " - Updated the POT file?"
-read -p " - Committed all changes up to GITHUB?"
+read -rp " - Added a changelog for ${VERSION}?"
+read -rp " - Set version in the readme.txt and main file to ${VERSION}?"
+read -rp " - Set stable tag in the readme.txt file to ${VERSION}?"
+read -rp " - Updated the POT file?"
+read -rp " - Committed all changes up to GITHUB?"
 echo ""
-read -p "PRESS [ENTER] TO BEGIN RELEASING "${VERSION}
+read -rp "PRESS [ENTER] TO BEGIN RELEASING ${VERSION}"
 clear
 
 # VARS
 ROOT_PATH=$(pwd)"/"
 TEMP_GITHUB_REPO=${PLUGIN_SLUG}"-git"
 TEMP_SVN_REPO=${PLUGIN_SLUG}"-svn"
-SVN_REPO="http://plugins.svn.wordpress.org/"${PLUGIN_SLUG}"/"
-GIT_REPO="git@github.com:"${GITHUB_REPO_OWNER}"/"${GITHUB_REPO_NAME}".git"
+SVN_REPO="http://plugins.svn.wordpress.org/${PLUGIN_SLUG}/"
+GIT_REPO="git@github.com:${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git"
 
 # DELETE OLD TEMP DIRS
-rm -Rf $TEMP_GITHUB_REPO
-rm -Rf $TEMP_SVN_REPO
+rm -Rf "$TEMP_GITHUB_REPO"
+rm -Rf "$TEMP_SVN_REPO"
 
 # CHECKOUT SVN DIR IF NOT EXISTS
 if [[ ! -d $TEMP_SVN_REPO ]];
 then
 	echo "Checking out WordPress.org plugin repository"
-	svn checkout $SVN_REPO $TEMP_SVN_REPO || { echo "Unable to checkout repo."; exit 1; }
+	svn checkout "$SVN_REPO" "$TEMP_SVN_REPO" || { echo "Unable to checkout repo."; exit 1; }
 fi
 
 # CLONE GIT DIR
 echo "Cloning GIT repository from GITHUB"
-git clone --progress $GIT_REPO $TEMP_GITHUB_REPO || { echo "Unable to clone repo."; exit 1; }
+git clone --progress "$GIT_REPO" "$TEMP_GITHUB_REPO" || { echo "Unable to clone repo."; exit 1; }
 
 # MOVE INTO GIT DIR
 cd "$ROOT_PATH$TEMP_GITHUB_REPO"
@@ -108,13 +110,13 @@ git fetch origin
 echo "WHICH BRANCH DO YOU WISH TO DEPLOY?"
 git branch -r || { echo "Unable to list branches."; exit 1; }
 echo ""
-read -p "origin/" BRANCH
+read -rp "origin/" BRANCH
 
 # SWITCH TO BRANCH
 echo "Switching to branch"
-git checkout ${BRANCH} || { echo "Unable to checkout branch."; exit 1; }
+git checkout "${BRANCH}" || { echo "Unable to checkout branch."; exit 1; }
 echo ""
-read -p "PRESS [ENTER] TO DEPLOY BRANCH "${BRANCH}
+read -rp "PRESS [ENTER] TO DEPLOY BRANCH ${BRANCH}"
 
 # RUN COMPOSER
 npm install
@@ -203,7 +205,7 @@ done
 
 # COPY TRUNK TO TAGS/$VERSION
 echo "Copying trunk to new tag"
-svn copy trunk tags/${VERSION} || { echo "Unable to create tag."; exit 1; }
+svn copy trunk tags/"${VERSION}" || { echo "Unable to create tag."; exit 1; }
 
 # DO SVN COMMIT
 clear
@@ -212,13 +214,13 @@ svn status
 
 # PROMPT USER
 echo ""
-read -p "PRESS [ENTER] TO COMMIT RELEASE "${VERSION}" TO WORDPRESS.ORG"
+read -rp "PRESS [ENTER] TO COMMIT RELEASE ${VERSION} TO WORDPRESS.ORG"
 echo ""
 
 # DEPLOY
 echo ""
 echo "Committing to WordPress.org...this may take a while..."
-svn commit -m "Release "${VERSION}", see readme.txt for changelog." || { echo "Unable to commit."; exit 1; }
+svn commit -m "Release ${VERSION}, see readme.txt for changelog." || { echo "Unable to commit."; exit 1; }
 
 # REMOVE THE TEMP DIRS
 echo "CLEANING UP"
